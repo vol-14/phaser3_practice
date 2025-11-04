@@ -31,6 +31,8 @@ docker-compose up -d
 ```
 
 **これだけで開発環境が完成！**
+<img width="1470" height="956" alt="スクリーンショット 2025-11-04 19 32 23" src="https://github.com/user-attachments/assets/ff63352c-4b51-4281-9456-53e4778e6099" />
+
 
 - ブラウザで `http://localhost:4000` にアクセス
 - コードを編集すると自動でリロードされる
