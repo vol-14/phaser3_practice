@@ -42,6 +42,8 @@ docker-compose up -d
 ```
 
 **これだけで開発環境が完成！**
+<img width="1470" height="956" alt="スクリーンショット 2025-11-04 19 32 23" src="https://github.com/user-attachments/assets/ff63352c-4b51-4281-9456-53e4778e6099" />
+
 
 - ブラウザで `http://localhost:4000` にアクセス
 - コードを編集すると自動でリロードされる
@@ -83,7 +85,17 @@ docker-compose exec phaser-dev npm install 新しいパッケージ
 ```
 
 ## トラブルシューティング
-1. パッケージを追加・削除した時
+
+### IDE側でのTypeScriptの補完エラー
+上記のコマンドのみの場合、ローカルにnode_moduleの中身が空っぽなので、TypeScriptの型チェックがIDEで動作しません
+<img width="1470" height="956" alt="スクリーンショット 2025-11-04 19 23 39" src="https://github.com/user-attachments/assets/0e8919da-4c4a-4c13-9e2e-46e7974b026a" />
+気になる場合はIDEのターミナルで
+```bash
+npm install
+```
+と打てばnode_moduleの中身が作成されるので、TypeScriptの型チェックが正常に動作します。
+<img width="1470" height="956" alt="スクリーンショット 2025-11-04 19 29 07" src="https://github.com/user-attachments/assets/26652b53-3942-468c-95ba-5da8876ed1c0" />
+
 
 # コンテナを停止
 ```
