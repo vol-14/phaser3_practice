@@ -12,10 +12,7 @@
 
 ```bash
 # HTTPSでクローン（推奨）
-git clone https://github.com/ユーザー名/phaser3_practice.git
-
-# または SSHでクローン（SSH鍵設定済みの場合）
-git clone git@github.com:ユーザー名/phaser3_practice.git
+git clone https://github.com/kopo-k/phaser3_practice.git
 
 # クローンしたディレクトリに移動
 cd phaser3_practice
