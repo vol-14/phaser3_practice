@@ -1,5 +1,16 @@
 # チーム開発環境構築手順
 
+## 技術スタック
+
+### フロントエンド
+- **Phaser 3** (v3.90.0) - ゲームフレームワーク
+- **TypeScript** (v5.9.3) - 型安全な開発
+- **Vite** (v6.4.1) - 高速ビルドツール
+
+### インフラ
+- **Docker** - コンテナ化
+- **Node.js** (v18-alpine) - JavaScript実行環境
+
 ## 前提条件
 
 チームメンバーの各PCに以下がインストールされていること:
@@ -93,13 +104,23 @@ docker-compose build --no-cache
 docker-compose up
 ```
 
-### ポート3000が使用中
+### ポート4000が使用中
 
+**Mac/Linux:**
 ```bash
 # 使用中のプロセスを確認
-lsof -i :3000
+lsof -i :4000
+```
 
-# または、docker-compose.ymlのポートを変更
+**Windows:**
+```powershell
+# 使用中のプロセスを確認
+netstat -ano | findstr :4000
+```
+
+**共通の解決方法:**
+```yaml
+# docker-compose.ymlのポートを変更
 ports:
-  - "3001:3000"
+  - "3001:4000"  # 左側を別のポートに変更
 ```
