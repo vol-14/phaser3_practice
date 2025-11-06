@@ -1,40 +1,28 @@
 import Phaser from 'phaser'
-
-class GameScene extends Phaser.Scene {
-  constructor() {
-    super({ key: 'GameScene' })
-  }
-
-  preload() {
-    // アセットをここでロード
-  }
-
-  create() {
-    // ゲームオブジェクトをここで作成
-    this.add.text(400, 300, 'Hello Phaser 3!', {
-      fontSize: '32px',
-      color: '#ffffff'
-    }).setOrigin(0.5)
-  }
-
-  update() {
-    // ゲームループ処理
-  }
-}
+import { TitleScene } from './scenes/TitleScene'
 
 const config: Phaser.Types.Core.GameConfig = {
-  type: Phaser.AUTO,
-  width: 800,
-  height: 600,
-  backgroundColor: '#2d2d2d',
+  type: Phaser.WEBGL,
+  scale: {
+    mode: Phaser.Scale.FIT,
+    autoCenter: Phaser.Scale.CENTER_BOTH,
+    width: 1920,
+    height: 1080
+  },
+  backgroundColor: '#f5f5f0',
   parent: 'game-container',
-  scene: [GameScene],
+  scene: [TitleScene],
   physics: {
     default: 'arcade',
     arcade: {
       gravity: { x: 0, y: 0 },
       debug: false
     }
+  },
+  render: {
+    antialias: true,
+    pixelArt: false,
+    roundPixels: false
   }
 }
 
