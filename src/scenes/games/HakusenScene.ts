@@ -15,11 +15,12 @@ export class HakusenScene extends Phaser.Scene {
   private gameStarted: boolean = false
   private inCrosswalk: boolean = false
 
-  private readonly GROUND_Y: number = 880  // 地面の高さ（画面下部）
-  private readonly WHITE_BLOCK_WIDTH: number = 120  // 白線ブロックの幅
-  private readonly WHITE_BLOCK_HEIGHT: number = 50  // 白線ブロックの高さ
-  private readonly BLOCK_GAP: number = 120  // ブロック間の黒い隙間
-  private readonly SCROLL_SPEED: number = 3  // 横スクロール速度
+  private readonly ROAD_CENTER_Y: number = 540  // 道路の中心Y座標（画面中央）
+  private readonly ROAD_HEIGHT: number = 600  // 道路の高さ（広く）
+  private readonly WHITE_LINE_WIDTH: number = 80  // 白線の幅（縦方向）
+  private readonly LINE_SPACING: number = 180  // 白線間の間隔
+  private readonly SIDEWALK_WIDTH: number = 300  // 歩道エリアの幅
+  private readonly LANE_HEIGHT: number = 150  // レーン（上下）の高さ
 
   constructor() {
     super({ key: 'HakusenScene' })
@@ -60,9 +61,12 @@ export class HakusenScene extends Phaser.Scene {
       })
     }
 
-    // プレイヤーを最初の白ブロックの上に配置
-    this.player = new Player(this, 200, this.GROUND_Y - this.WHITE_BLOCK_HEIGHT / 2)
+    // プレイヤーを歩道エリア、道路中央に配置
+    this.player = new Player(this, 150, this.ROAD_CENTER_Y)
     this.player.playWalkAnimation()
+
+    // 歩道エリアからスタート
+    this.inCrosswalk = false
 
     this.obstacles = this.add.group()
     this.cursors = this.input.keyboard!.createCursorKeys()
@@ -121,14 +125,15 @@ export class HakusenScene extends Phaser.Scene {
   update() {
     if (this.isGameOver) return
 
-    // ゲーム開始前はスクロールのみ
+    // ゲーム開始前は何もしない
     if (!this.gameStarted) {
-      this.scrollWhiteBlocks()
       return
     }
 
-    // ゲーム開始後、白線ブロックをスクロール
-    this.scrollWhiteBlocks()
+    // ゲーム開始後、キャラクターを自動で右に移動
+    const walkSpeed = 3
+    this.player.x += walkSpeed
+
     this.handlePlayerMovement()
     this.updateObstacles()
     this.checkCollisions()
@@ -152,31 +157,60 @@ export class HakusenScene extends Phaser.Scene {
       this.backgroundElements.push(cloud)
     }
 
-    // 地面（上半分は薄い灰色）
-    const groundTop = this.add.rectangle(
+    // 道路（黒い部分）
+    const road = this.add.rectangle(
       width / 2,
-      height / 2,
+      this.ROAD_CENTER_Y,
       width,
-      height,
-      0xcccccc
-    )
-    groundTop.setDepth(-2)
-
-    // 下部の地面（黒い部分 - 白ブロックの後ろ）
-    const groundBottom = this.add.rectangle(
-      width / 2,
-      this.GROUND_Y,
-      width,
-      200,
+      this.ROAD_HEIGHT,
       0x333333
     )
-    groundBottom.setDepth(-1)
+    road.setDepth(-1)
+
+    // 左側の歩道エリア（安全地帯）
+    const sidewalk = this.add.rectangle(
+      this.SIDEWALK_WIDTH / 2,
+      this.ROAD_CENTER_Y,
+      this.SIDEWALK_WIDTH,
+      this.ROAD_HEIGHT,
+      0xaaaaaa
+    )
+    sidewalk.setDepth(0)
+
+    // 歩道の縁石
+    const curbEdge = this.add.rectangle(
+      this.SIDEWALK_WIDTH,
+      this.ROAD_CENTER_Y,
+      8,
+      this.ROAD_HEIGHT,
+      0x888888
+    )
+    curbEdge.setDepth(1)
+
+    // 上下の歩道
+    const sidewalkTop = this.add.rectangle(
+      width / 2,
+      this.ROAD_CENTER_Y - this.ROAD_HEIGHT / 2 - 60,
+      width,
+      120,
+      0xcccccc
+    )
+    sidewalkTop.setDepth(-1)
+
+    const sidewalkBottom = this.add.rectangle(
+      width / 2,
+      this.ROAD_CENTER_Y + this.ROAD_HEIGHT / 2 + 60,
+      width,
+      120,
+      0xcccccc
+    )
+    sidewalkBottom.setDepth(-1)
 
     // 木々（背景装飾）
     for (let i = 0; i < 6; i++) {
       const tree = this.add.ellipse(
         Phaser.Math.Between(-100, width + 100),
-        Phaser.Math.Between(100, 300),
+        this.ROAD_CENTER_Y - this.ROAD_HEIGHT / 2 - 80,
         50,
         60,
         0x228b22
@@ -187,22 +221,43 @@ export class HakusenScene extends Phaser.Scene {
   }
 
   private createCrosswalk(width: number, height: number): void {
-    // 横方向の白線ブロックを作成（画面右端から生成）
-    const numBlocks = Math.floor(width / (this.WHITE_BLOCK_WIDTH + this.BLOCK_GAP)) + 3
+    // 縦方向の白線を作成（横断歩道スタイル）
+    const numLines = Math.floor((width - this.SIDEWALK_WIDTH + 200) / this.LINE_SPACING) + 1
+    const firstLineX = this.SIDEWALK_WIDTH + 34  // 歩道の右端から開始
 
-    for (let i = 0; i < numBlocks; i++) {
-      const x = i * (this.WHITE_BLOCK_WIDTH + this.BLOCK_GAP)
+    for (let i = 0; i < numLines; i++) {
+      const x = firstLineX + (i * this.LINE_SPACING)
 
-      const block = this.add.rectangle(
+      const line = this.add.rectangle(
         x,
-        this.GROUND_Y,
-        this.WHITE_BLOCK_WIDTH,
-        this.WHITE_BLOCK_HEIGHT,
+        this.ROAD_CENTER_Y,
+        this.WHITE_LINE_WIDTH,
+        this.ROAD_HEIGHT,
         0xffffff
       )
-      block.setDepth(10)
-      this.whiteLines.push(block)
+      line.setAlpha(0.9)
+      line.setDepth(0)
+      this.whiteLines.push(line)
     }
+
+    // 横断歩道の境界線（黄色）
+    const yellowLineTop = this.add.rectangle(
+      width / 2,
+      this.ROAD_CENTER_Y - this.ROAD_HEIGHT / 2,
+      width,
+      4,
+      0xffff00
+    )
+    yellowLineTop.setDepth(0)
+
+    const yellowLineBottom = this.add.rectangle(
+      width / 2,
+      this.ROAD_CENTER_Y + this.ROAD_HEIGHT / 2,
+      width,
+      4,
+      0xffff00
+    )
+    yellowLineBottom.setDepth(0)
   }
 
   private createUI(width: number, height: number): void {
@@ -253,7 +308,7 @@ export class HakusenScene extends Phaser.Scene {
       })
       .on('pointerdown', () => this.goBack())
 
-    const controlHint = this.add.text(width / 2, height - 100, '← → で左右移動 | 白いブロックの上だけを歩いてください！', {
+    const controlHint = this.add.text(width / 2, height - 100, '↑ ↓ でジャンプ | キャラは自動で歩きます | 白いブロックの上だけを歩いてください！', {
       fontSize: '24px',
       color: '#ffffff',
       fontFamily: 'Arial, sans-serif',
@@ -271,57 +326,35 @@ export class HakusenScene extends Phaser.Scene {
     })
   }
 
-  private scrollWhiteBlocks(): void {
-    const width = this.cameras.main.width
-
-    // 白線ブロックを左にスクロール
-    this.whiteLines.forEach(block => {
-      block.x -= this.SCROLL_SPEED
-
-      // 画面左端を超えたら右端に戻す（無限ループ）
-      if (block.x < -this.WHITE_BLOCK_WIDTH / 2) {
-        block.x = width + this.WHITE_BLOCK_WIDTH / 2 + this.BLOCK_GAP
-      }
-    })
-
-    // 背景要素（雲・木）も軽くスクロール
-    this.backgroundElements.forEach((element: any) => {
-      if (element.y < this.cameras.main.height / 2) {
-        // 雲はゆっくり
-        element.x -= 0.5
-        if (element.x < -100) {
-          element.x = this.cameras.main.width + 100
-        }
-      } else {
-        // 木は少し速く
-        element.x -= 1
-        if (element.x < -100) {
-          element.x = this.cameras.main.width + 100
-        }
-      }
-    })
-  }
 
   private handlePlayerMovement(): void {
-    const width = this.cameras.main.width
-    const leftBoundary = 50
-    const rightBoundary = width - 50
+    const jumpDistance = this.LANE_HEIGHT  // レーン1つ分の距離
+    const topBoundary = this.ROAD_CENTER_Y - this.ROAD_HEIGHT / 2 + 50
+    const bottomBoundary = this.ROAD_CENTER_Y + this.ROAD_HEIGHT / 2 - 50
 
-    // 左右移動（矢印キーで操作）
-    if (this.cursors.left.isDown) {
-      this.player.x = Math.max(this.player.x - 5, leftBoundary)
-      this.player.setFlipX(true)  // 左向きに反転
-    } else if (this.cursors.right.isDown) {
-      this.player.x = Math.min(this.player.x + 5, rightBoundary)
-      this.player.setFlipX(false)  // 右向き（通常）
+    // 上下ジャンプ操作のみ
+    if (Phaser.Input.Keyboard.JustDown(this.cursors.up) && !this.player.getIsJumping()) {
+      const targetY = this.player.y - jumpDistance
+      // 道路の上端を超えないようにチェック
+      if (targetY >= topBoundary) {
+        this.player.jump(targetY)
+      }
+    } else if (Phaser.Input.Keyboard.JustDown(this.cursors.down) && !this.player.getIsJumping()) {
+      const targetY = this.player.y + jumpDistance
+      // 道路の下端を超えないようにチェック
+      if (targetY <= bottomBoundary) {
+        this.player.jump(targetY)
+      }
     }
   }
 
   private spawnObstacle(): void {
     if (this.isGameOver) return
 
-    // 白ブロックの上に障害物を配置
-    const y = this.GROUND_Y - this.WHITE_BLOCK_HEIGHT / 2 - 20
+    // 道路の範囲内でランダムにY座標を決定
+    const minY = this.ROAD_CENTER_Y - this.ROAD_HEIGHT / 2 + 50
+    const maxY = this.ROAD_CENTER_Y + this.ROAD_HEIGHT / 2 - 50
+    const y = Phaser.Math.Between(minY, maxY)
 
     const obstacleTypes = [
       { color: 0x8b4513, size: 25, shape: 'circle', name: '石' },
@@ -342,7 +375,7 @@ export class HakusenScene extends Phaser.Scene {
 
     this.physics.add.existing(obstacle)
     const body = obstacle.body as Phaser.Physics.Arcade.Body
-    body.setVelocityX(-150)  // スクロール速度に合わせて調整
+    body.setVelocityX(-200)
 
     this.obstacles.add(obstacle)
   }
@@ -375,7 +408,18 @@ export class HakusenScene extends Phaser.Scene {
   }
 
   private checkBoundary(): void {
-    // プレイヤーが白ブロックの上にいるかチェック
+    // プレイヤーが歩道エリア内にいる場合はチェックしない
+    if (this.player.x < this.SIDEWALK_WIDTH) {
+      this.inCrosswalk = false
+      return
+    }
+
+    // 歩道を出たらフラグを立てる
+    if (!this.inCrosswalk) {
+      this.inCrosswalk = true
+    }
+
+    // 白ブロックエリアに入ったら、白ブロックの上にいるかチェック
     const playerOnWhiteBlock = this.isPlayerOnWhiteBlock()
 
     if (!playerOnWhiteBlock) {
@@ -384,20 +428,20 @@ export class HakusenScene extends Phaser.Scene {
   }
 
   private isPlayerOnWhiteBlock(): boolean {
-    const tolerance = 10  // 少し余裕を持たせる
-    let onBlock = false
+    const tolerance = 5  // 少し余裕を持たせる
+    let onLine = false
 
-    this.whiteLines.forEach(block => {
-      const leftEdge = block.x - this.WHITE_BLOCK_WIDTH / 2
-      const rightEdge = block.x + this.WHITE_BLOCK_WIDTH / 2
+    this.whiteLines.forEach(line => {
+      const leftEdge = line.x - this.WHITE_LINE_WIDTH / 2
+      const rightEdge = line.x + this.WHITE_LINE_WIDTH / 2
 
-      // プレイヤーのX座標が白ブロックの範囲内にあるかチェック
+      // プレイヤーのX座標が白線の範囲内にあるかチェック
       if (this.player.x >= leftEdge - tolerance && this.player.x <= rightEdge + tolerance) {
-        onBlock = true
+        onLine = true
       }
     })
 
-    return onBlock
+    return onLine
   }
 
   private updateUI(): void {
