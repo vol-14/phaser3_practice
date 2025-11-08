@@ -2,6 +2,7 @@ import Phaser from 'phaser'
 import { TitleScene } from './scenes/TitleScene'
 import { MenuScene } from './scenes/MenuScene'
 import { NeriKeshiScene } from './scenes/games/NeriKeshiScene'
+import { HakusenScene } from './scenes/games/HakusenScene'
 
 const config: Phaser.Types.Core.GameConfig = {
   type: Phaser.WEBGL,
@@ -13,7 +14,7 @@ const config: Phaser.Types.Core.GameConfig = {
   },
   backgroundColor: '#f5f5f0',
   parent: 'game-container',
-  scene: [TitleScene, MenuScene, NeriKeshiScene],
+  scene: [TitleScene, MenuScene, NeriKeshiScene, HakusenScene],
   physics: {
     default: 'arcade',
     arcade: {
