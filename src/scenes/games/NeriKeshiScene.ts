@@ -14,9 +14,9 @@ export class NeriKeshiScene extends Phaser.Scene {
     private eraser!: Eraser;
     private neriKeshi!: Eraser;
     private pencil!: Pencil;
+    private pencilDots!: Phaser.Physics.Arcade.Group;
     private eraserPieces!: Phaser.Physics.Arcade.Group;
-    private lastPieceTime: number = 0;
-    private pieceInterval: number = 120; // ms
+
     private modeText!: Phaser.GameObjects.Text;
 
     constructor() {
@@ -101,7 +101,8 @@ export class NeriKeshiScene extends Phaser.Scene {
         this.add.existing(this.neriKeshi);
 
         // えんぴつ（線を描く）
-        this.pencil = new Pencil(this);
+        this.pencilDots = this.physics.add.group();
+        this.pencil = new Pencil(this, this.pencilDots);
 
         // 消しかすグループ（物理付き）
         this.eraserPieces = this.physics.add.group();
@@ -114,12 +115,20 @@ export class NeriKeshiScene extends Phaser.Scene {
             p.destroy();
         });
 
+        // 消しゴムと鉛筆のドット（ストローク）を接触検出 -> ドットを破棄して消しかすを生成
+        this.physics.add.overlap(this.eraser, this.pencilDots, (_eraser, dot) => {
+            const d = dot as Phaser.GameObjects.GameObject & { destroy: () => void } & any;
+            // spawnPiece はドット位置で発生
+            this.spawnPiece(d.x, d.y);
+            // ドットの近傍を鉛筆から消す
+            this.pencil.eraseAt(d.x, d.y, 12);
+            d.destroy();
+        });
+
         // 入力処理（ドラッグで擦る、スペースでモード切替）
         this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
             if (this.mode === GameMode.EraserMode) {
                 this.eraser.setPosition(pointer.x, pointer.y);
-                this.spawnPiece(pointer.x, pointer.y);
-                this.lastPieceTime = this.time.now;
             } else if (this.mode === GameMode.NeriKeshiMode) {
                 this.neriKeshi.setPosition(pointer.x, pointer.y);
             } else if (this.mode === GameMode.PencilMode) {
@@ -131,10 +140,6 @@ export class NeriKeshiScene extends Phaser.Scene {
             if (!pointer.isDown) return;
             if (this.mode === GameMode.EraserMode) {
                 this.eraser.setPosition(pointer.x, pointer.y);
-                if (this.time.now - this.lastPieceTime > this.pieceInterval) {
-                    this.spawnPiece(pointer.x, pointer.y);
-                    this.lastPieceTime = this.time.now;
-                }
             } else if (this.mode === GameMode.NeriKeshiMode) {
                 this.neriKeshi.setPosition(pointer.x, pointer.y);
             } else if (this.mode === GameMode.PencilMode) {
