@@ -1,6 +1,8 @@
 import Phaser from 'phaser'
 import { TitleScene } from './scenes/TitleScene'
 import { MenuScene } from './scenes/MenuScene'
+import { KeshiPinScene } from './scenes/games/KeshiPinScene'
+import { TestScene } from './scenes/games/TestScene'
 
 const config: Phaser.Types.Core.GameConfig = {
   type: Phaser.WEBGL,
@@ -12,7 +14,12 @@ const config: Phaser.Types.Core.GameConfig = {
   },
   backgroundColor: '#f5f5f0',
   parent: 'game-container',
-  scene: [TitleScene, MenuScene,],
+  scene: [
+    TitleScene,
+    MenuScene,
+    KeshiPinScene,
+    TestScene
+  ],
   physics: {
     default: 'arcade',
     arcade: {
