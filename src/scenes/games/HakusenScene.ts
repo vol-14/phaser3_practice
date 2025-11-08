@@ -29,6 +29,7 @@ export class HakusenScene extends Phaser.Scene {
   private jumpGaugeText!: Phaser.GameObjects.Text  // ジャンプゲージのテキスト
   private sidewalk!: Phaser.GameObjects.Rectangle  // 歩道エリア
   private curbEdge!: Phaser.GameObjects.Rectangle  // 縁石
+  private tutorialShown: boolean = false  // チュートリアル表示済みフラグ
 
   constructor() {
     super({ key: 'HakusenScene' })
@@ -82,6 +83,88 @@ export class HakusenScene extends Phaser.Scene {
     this.obstacles = this.add.group()
     this.cursors = this.input.keyboard!.createCursorKeys()
 
+    // チュートリアルモーダルを表示
+    this.showTutorialModal(width, height)
+  }
+
+  private showTutorialModal(width: number, height: number): void {
+    // モーダルの背景（暗いオーバーレイ）
+    const overlay = this.add.rectangle(width / 2, height / 2, width, height, 0x000000, 0.8)
+    overlay.setDepth(300)
+
+    // モーダルボックス
+    const modalBox = this.add.rectangle(width / 2, height / 2, 700, 500, 0x1a1a1a)
+    modalBox.setDepth(301)
+    modalBox.setStrokeStyle(4, 0x5b9dd9)
+
+    // タイトル
+    const title = this.add.text(width / 2, height / 2 - 220, '白線渡りゲーム', {
+      fontSize: '42px',
+      color: '#ffffff',
+      fontFamily: 'Arial, sans-serif',
+      fontStyle: 'bold'
+    })
+    title.setOrigin(0.5)
+    title.setDepth(302)
+
+    // 説明文
+    const instructions = [
+      '← → キーを長押ししてジャンプ！',
+      '押す時間でジャンプの距離が変わります',
+      '',
+      '白いブロックの上だけを移動してください',
+      '黒い部分に落ちるとゲームオーバーです',
+      '',
+      'できるだけ遠くまで進みましょう！'
+    ]
+
+    const instructionText = this.add.text(width / 2, height / 2 - 60, instructions.join('\n'), {
+      fontSize: '22px',
+      color: '#ffffff',
+      fontFamily: 'Arial, sans-serif',
+      align: 'center',
+      lineSpacing: 12
+    })
+    instructionText.setOrigin(0.5)
+    instructionText.setDepth(302)
+
+    // スタートボタン
+    const startButton = this.add.text(width / 2, height / 2 + 180, 'ゲームスタート', {
+      fontSize: '32px',
+      color: '#ffffff',
+      backgroundColor: '#5b9dd9',
+      padding: { x: 40, y: 20 },
+      fontFamily: 'Arial, sans-serif',
+      fontStyle: 'bold'
+    })
+    startButton.setOrigin(0.5)
+    startButton.setDepth(302)
+    startButton.setInteractive({ useHandCursor: true })
+    startButton.on('pointerover', () => {
+      startButton.setScale(1.1)
+      startButton.setBackgroundColor('#7cb9e8')
+    })
+    startButton.on('pointerout', () => {
+      startButton.setScale(1)
+      startButton.setBackgroundColor('#5b9dd9')
+    })
+    startButton.on('pointerdown', () => {
+      // モーダルを削除
+      overlay.destroy()
+      modalBox.destroy()
+      title.destroy()
+      instructionText.destroy()
+      startButton.destroy()
+
+      // チュートリアル表示済みフラグを立てる
+      this.tutorialShown = true
+
+      // カウントダウンを開始
+      this.startCountdown(width, height)
+    })
+  }
+
+  private startCountdown(width: number, height: number): void {
     // カウントダウン表示
     const countdownText = this.add.text(width / 2, height / 2, '準備...', {
       fontSize: '72px',
@@ -104,6 +187,8 @@ export class HakusenScene extends Phaser.Scene {
           this.time.delayedCall(500, () => {
             countdownText.destroy()
             this.gameStarted = true
+            // タイマーを開始
+            this.setupTimers()
           })
           countdownTimer.destroy()
         }
@@ -111,7 +196,9 @@ export class HakusenScene extends Phaser.Scene {
       callbackScope: this,
       loop: true
     })
+  }
 
+  private setupTimers(): void {
     this.time.addEvent({
       delay: 2500,
       callback: this.spawnObstacle,
@@ -279,23 +366,6 @@ export class HakusenScene extends Phaser.Scene {
         backButton.setScale(1)
       })
       .on('pointerdown', () => this.goBack())
-
-    const controlHint = this.add.text(width / 2, height - 100, '← → 長押しでジャンプ距離調整 | 白いブロックの上を移動してください！', {
-      fontSize: '24px',
-      color: '#ffffff',
-      fontFamily: 'Arial, sans-serif',
-      backgroundColor: '#000000',
-      padding: { x: 20, y: 10 }
-    }).setOrigin(0.5).setDepth(100).setAlpha(0.7)
-
-    this.time.delayedCall(3000, () => {
-      this.tweens.add({
-        targets: controlHint,
-        alpha: 0,
-        duration: 1000,
-        onComplete: () => controlHint.destroy()
-      })
-    })
 
     // ジャンプゲージUI作成（プレイヤーの上に表示）
     const gaugeWidth = 150
