@@ -30,30 +30,42 @@ export class Player extends Phaser.GameObjects.Sprite {
     this.setFrame(1) // 中央のフレーム（立ち姿）
   }
 
-  jump(targetY: number, onComplete?: () => void): void {
+  jump(targetX: number, onComplete?: () => void): void {
     if (this.isJumping) return
 
     this.isJumping = true
-    this.jumpStartY = this.y
+    const startY = this.y
+    const startX = this.x
 
-    const jumpHeight = 40  // ジャンプの高さ
-    const jumpDuration = 300  // ジャンプ時間を短く（より素早く）
+    const jumpHeight = 60  // ジャンプの高さ
+    const jumpDuration = 400  // ジャンプ時間
 
-    // Y方向の移動（放物線）
+    // X方向の移動とY方向のアーチを同時に実行
     this.scene.tweens.add({
       targets: this,
-      y: targetY,
+      x: targetX,  // 横方向に移動
       duration: jumpDuration,
-      ease: 'Sine.easeInOut',  // より自然な動き
-      onUpdate: (tween) => {
-        const progress = tween.progress
-        // 放物線を描く（頂点は中間点）
-        const arc = Math.sin(progress * Math.PI)
-        this.y = this.jumpStartY + (targetY - this.jumpStartY) * progress - arc * jumpHeight
-      },
+      ease: 'Linear'
+    })
+
+    // Y方向の上下移動（放物線アーチ）
+    this.scene.tweens.add({
+      targets: this,
+      y: startY - jumpHeight,  // 上に飛ぶ
+      duration: jumpDuration / 2,
+      ease: 'Quad.easeOut',
       onComplete: () => {
-        this.isJumping = false
-        if (onComplete) onComplete()
+        // 降りる
+        this.scene.tweens.add({
+          targets: this,
+          y: startY,  // 元の高さに戻る
+          duration: jumpDuration / 2,
+          ease: 'Quad.easeIn',
+          onComplete: () => {
+            this.isJumping = false
+            if (onComplete) onComplete()
+          }
+        })
       }
     })
 
@@ -64,16 +76,6 @@ export class Player extends Phaser.GameObjects.Sprite {
       duration: jumpDuration / 2,
       ease: 'Quad.easeOut',
       yoyo: true  // 元に戻る
-    })
-
-    // 回転アニメーション（わずかに傾ける）
-    const rotationAmount = targetY > this.y ? 0.05 : -0.05
-    this.scene.tweens.add({
-      targets: this,
-      angle: rotationAmount * 10,  // 度数に変換
-      duration: jumpDuration / 2,
-      ease: 'Quad.easeOut',
-      yoyo: true
     })
   }
 
