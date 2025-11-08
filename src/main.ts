@@ -2,7 +2,6 @@ import Phaser from 'phaser'
 import { TitleScene } from './scenes/TitleScene'
 import { MenuScene } from './scenes/MenuScene'
 import { KeshiPinScene } from './scenes/games/KeshiPinScene'
-import { TestScene } from './scenes/games/TestScene'
 
 const config: Phaser.Types.Core.GameConfig = {
   type: Phaser.WEBGL,
@@ -17,8 +16,7 @@ const config: Phaser.Types.Core.GameConfig = {
   scene: [
     TitleScene,
     MenuScene,
-    KeshiPinScene,
-    TestScene
+    KeshiPinScene
   ],
   physics: {
     default: 'arcade',
