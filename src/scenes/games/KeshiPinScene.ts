@@ -9,13 +9,16 @@ export class KeshiPinScene extends Phaser.Scene {
   // ゲームオブジェクト
   private playerEraser!: Eraser;
   private enemyErasers: Eraser[] = [];
+  private allErasers: Eraser[] = []; // すべての消しゴム（プレイヤー + 敵）
+  private desk!: Phaser.GameObjects.Rectangle;
   private deskBounds!: Phaser.Geom.Rectangle;
 
   // 入力
   private spaceKey!: Phaser.Input.Keyboard.Key;
 
   // ゲーム状態
-  private enemiesRemaining: number = 3;
+  private ENEMIES_TOTAL_NUM: number = 3;
+  private enemiesRemaining: number = this.ENEMIES_TOTAL_NUM;
   private enemyCountText!: Phaser.GameObjects.Text;
   private gameOver: boolean = false;
 
@@ -94,24 +97,28 @@ export class KeshiPinScene extends Phaser.Scene {
    */
   private createPlayer() {
     // 机の範囲内でランダムな位置を取得
-    const { x, y } = this.getRandomPositionOnDesk();
+    const { x, y } = this.getNonOverlappingPosition();
 
     // プレイヤー消しゴムをインスタンス化（青色）
     this.playerEraser = new Eraser(this, x, y, 0x4169E1);
+    // 全消しゴムリストに追加
+    this.allErasers.push(this.playerEraser);
   }
 
   /**
    * 敵消しゴムの作成
    */
   private createEnemies() {
-    // 3体の敵をランダムな位置に配置
-    for (let i = 0; i < 3; i++) {
-      // ランダムな位置を取得
-      const { x, y } = this.getRandomPositionOnDesk(100);
+    // 残りの敵の数だけ敵をランダムな位置に配置
+    for (let i = 0; i < this.ENEMIES_TOTAL_NUM; i++) {
+      // 既存の消しゴムと重ならない位置を取得
+      const { x, y } = this.getNonOverlappingPosition();
+
       // 敵消しゴムをインスタンス化（赤色）
       const enemy = new Eraser(this, x, y, 0xFF4500);
       // 配列に追加
       this.enemyErasers.push(enemy);
+      this.allErasers.push(enemy);
     }
   }
 
@@ -122,7 +129,7 @@ export class KeshiPinScene extends Phaser.Scene {
     const { width } = this.scale;
 
     // 残りの敵の数
-    this.enemyCountText = this.add.text(20, 50, `残り敵: ${this.enemiesRemaining}`, {
+    this.enemyCountText = this.add.text(20, 50, `残りの消しゴム: ${this.enemiesRemaining}`, {
       fontSize: '24px',
       color: '#000000',
       fontFamily: 'Arial'
@@ -232,6 +239,42 @@ export class KeshiPinScene extends Phaser.Scene {
   }
 
   /**
+   * 既存の消しゴムと重ならない位置を取得（再帰版）
+   * @param minDistance 最小距離（ピクセル）
+   * @param attemptsLeft 残り試行回数
+   * @returns { x: number, y: number } 重ならない座標
+   */
+  private getNonOverlappingPosition(
+    minDistance: number = 100,
+    attemptsLeft: number = 50
+  ): { x: number; y: number } {
+    // 基底条件: 試行回数が0になったら諦めてランダムな位置を返す
+    if (attemptsLeft <= 0) {
+      return this.getRandomPositionOnDesk();
+    }
+
+    // ランダムな位置を取得
+    const { x, y } = this.getRandomPositionOnDesk();
+    // すべての既存消しゴムとの距離をチェック
+    const isTooClose = this.allErasers.some(eraser => {
+      // 2点間の距離を計算（ピタゴラスの定理）
+      const dx = x - eraser.x;
+      const dy = y - eraser.y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      // 最小距離より近い場合はtrue
+      return distance < minDistance;
+    });
+
+    // 位置が有効なら返す、無効なら再帰呼び出しで再試行
+    if (!isTooClose) {
+      return { x, y };
+    } else {
+      // 再帰: 残り試行回数を1減らして再度実行
+      return this.getNonOverlappingPosition(minDistance, attemptsLeft - 1);
+    }
+  }
+
+  /**
    * 毎フレームの更新処理
    */
   update() {
@@ -319,7 +362,7 @@ export class KeshiPinScene extends Phaser.Scene {
         enemy.destroy();
         this.enemyErasers.splice(i, 1);  // 配列から削除
         this.enemiesRemaining--;
-        this.enemyCountText.setText(`残り敵: ${this.enemiesRemaining}`);
+        this.enemyCountText.setText(`残りの消しゴム: ${this.enemiesRemaining}`);
 
         // 全ての敵を倒したら勝利
         if (this.enemiesRemaining === 0) {
