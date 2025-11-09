@@ -362,7 +362,7 @@ export class KeshiPinScene extends Phaser.Scene {
         enemy.destroy();
         this.enemyErasers.splice(i, 1);  // 配列から削除
         this.enemiesRemaining--;
-        this.enemyCountText.setText(`残り敵: ${this.enemiesRemaining}`);
+        this.enemyCountText.setText(`残りの消しゴム: ${this.enemiesRemaining}`);
 
         // 全ての敵を倒したら勝利
         if (this.enemiesRemaining === 0) {
