@@ -240,13 +240,11 @@ export class KeshiPinScene extends Phaser.Scene {
 
   /**
    * 既存の消しゴムと重ならない位置を取得（再帰版）
-   * @param existingErasers 既に配置されている消しゴムの配列
    * @param minDistance 最小距離（ピクセル）
    * @param attemptsLeft 残り試行回数
    * @returns { x: number, y: number } 重ならない座標
    */
   private getNonOverlappingPosition(
-    existingErasers: Eraser[],
     minDistance: number = 100,
     attemptsLeft: number = 50
   ): { x: number; y: number } {
@@ -257,24 +255,22 @@ export class KeshiPinScene extends Phaser.Scene {
 
     // ランダムな位置を取得
     const { x, y } = this.getRandomPositionOnDesk();
-    
     // すべての既存消しゴムとの距離をチェック
-    const isTooClose = existingErasers.some(eraser => {
+    const isTooClose = this.allErasers.some(eraser => {
       // 2点間の距離を計算（ピタゴラスの定理）
       const dx = x - eraser.x;
       const dy = y - eraser.y;
       const distance = Math.sqrt(dx * dx + dy * dy);
-      
       // 最小距離より近い場合はtrue
       return distance < minDistance;
     });
-    
+
     // 位置が有効なら返す、無効なら再帰呼び出しで再試行
     if (!isTooClose) {
       return { x, y };
     } else {
       // 再帰: 残り試行回数を1減らして再度実行
-      return this.getNonOverlappingPosition(existingErasers, minDistance, attemptsLeft - 1);
+      return this.getNonOverlappingPosition(minDistance, attemptsLeft - 1);
     }
   }
 
