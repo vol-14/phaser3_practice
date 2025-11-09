@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { Eraser } from '../../gameObjects/nerikeshi/Eraser.ts';
 import { EraserPiece } from '../../gameObjects/nerikeshi/EraserPiece.ts';
-import { Pencil } from '../../gameObjects/nerikeshi/Pencil.ts';
+import { PencilRT } from '../../gameObjects/nerikeshi/PencilRT.ts';
 
 enum GameMode {
     EraserMode,
@@ -13,8 +13,7 @@ export class NeriKeshiScene extends Phaser.Scene {
     private mode: GameMode = GameMode.EraserMode;
     private eraser!: Eraser;
     private neriKeshi!: Eraser;
-    private pencil!: Pencil;
-    private pencilDots!: Phaser.Physics.Arcade.Group;
+    private pencil!: PencilRT;
     private eraserPieces!: Phaser.Physics.Arcade.Group;
 
     private modeText!: Phaser.GameObjects.Text;
@@ -101,8 +100,7 @@ export class NeriKeshiScene extends Phaser.Scene {
         this.add.existing(this.neriKeshi);
 
         // えんぴつ（線を描く）
-        this.pencilDots = this.physics.add.group();
-        this.pencil = new Pencil(this, this.pencilDots);
+        this.pencil = new PencilRT(this);
 
         // 消しかすグループ（物理付き）
         this.eraserPieces = this.physics.add.group();
@@ -115,20 +113,15 @@ export class NeriKeshiScene extends Phaser.Scene {
             p.destroy();
         });
 
-        // 消しゴムと鉛筆のドット（ストローク）を接触検出 -> ドットを破棄して消しかすを生成
-        this.physics.add.overlap(this.eraser, this.pencilDots, (_eraser, dot) => {
-            const d = dot as Phaser.GameObjects.GameObject & { destroy: () => void } & any;
-            // spawnPiece はドット位置で発生
-            this.spawnPiece(d.x, d.y);
-            // ドットの近傍を鉛筆から消す
-            this.pencil.eraseAt(d.x, d.y, 12);
-            d.destroy();
-        });
-
         // 入力処理（ドラッグで擦る、スペースでモード切替）
         this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
             if (this.mode === GameMode.EraserMode) {
                 this.eraser.setPosition(pointer.x, pointer.y);
+                // 消しゴムで消して、線との接触があれば消しかす生成
+                const hitPoint = this.pencil.eraseAt(pointer.x, pointer.y);
+                if (hitPoint) {
+                    this.spawnPiece(hitPoint.x, hitPoint.y);
+                }
             } else if (this.mode === GameMode.NeriKeshiMode) {
                 this.neriKeshi.setPosition(pointer.x, pointer.y);
             } else if (this.mode === GameMode.PencilMode) {
@@ -140,6 +133,11 @@ export class NeriKeshiScene extends Phaser.Scene {
             if (!pointer.isDown) return;
             if (this.mode === GameMode.EraserMode) {
                 this.eraser.setPosition(pointer.x, pointer.y);
+                // 消しゴムで消して、線との接触があれば消しかす生成
+                const hitPoint = this.pencil.eraseAt(pointer.x, pointer.y);
+                if (hitPoint) {
+                    this.spawnPiece(hitPoint.x, hitPoint.y);
+                }
             } else if (this.mode === GameMode.NeriKeshiMode) {
                 this.neriKeshi.setPosition(pointer.x, pointer.y);
             } else if (this.mode === GameMode.PencilMode) {
@@ -185,15 +183,32 @@ export class NeriKeshiScene extends Phaser.Scene {
     }
 
     private spawnPiece(x: number, y: number) {
-        const piece = new EraserPiece(this, x, y);
-        this.add.existing(piece);
-        this.eraserPieces.add(piece);
-        const body = piece.body as Phaser.Physics.Arcade.Body | undefined;
-        if (body) {
-            body.setVelocity(Phaser.Math.Between(-15, 15), Phaser.Math.Between(-15, 15)); // より遅い動き
-            body.setBounce(0.2); // バウンドも控えめに
-            body.setCollideWorldBounds(true);
-            body.setDrag(20); // 徐々に減速するように
+        // 消しかすをランダムに複数個生成する
+        const count = Phaser.Math.Between(1, 2); // 1～2個
+        const spread = 30; // ヒット位置からの散らばりピクセル
+
+        for (let i = 0; i < count; i++) {
+            const offsetX = Phaser.Math.Between(-spread, spread);
+            const offsetY = Phaser.Math.Between(-spread, spread);
+            const px = x + offsetX;
+            const py = y + offsetY;
+
+            const piece = new EraserPiece(this, px, py);
+            this.add.existing(piece);
+            this.eraserPieces.add(piece);
+
+            // 見た目を少しランダムにして自然に
+            piece.setRotation(Phaser.Math.FloatBetween(0, Math.PI * 2));
+            piece.setScale(Phaser.Math.FloatBetween(0.8, 1.2));
+
+            const body = piece.body as Phaser.Physics.Arcade.Body | undefined;
+            if (body) {
+                // 速度もランダムに（やや大きめにして散らばりを強調）
+                body.setVelocity(Phaser.Math.Between(-20, 20), Phaser.Math.Between(-20, 20));
+                body.setBounce(Phaser.Math.FloatBetween(0.15, 0.35));
+                body.setCollideWorldBounds(true);
+                body.setDrag(Phaser.Math.Between(10, 60));
+            }
         }
     }
 

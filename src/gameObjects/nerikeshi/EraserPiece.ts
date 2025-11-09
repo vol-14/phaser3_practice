@@ -16,7 +16,7 @@ export class EraserPiece extends Phaser.GameObjects.Sprite {
             // より大きく、さらに細長い形状のパスを作成
             const points: Phaser.Math.Vector2[] = [];
             const segments = Phaser.Math.Between(12, 16);
-            const baseRadiusX = 12;  // 横方向の半径（細長さの源）
+            const baseRadiusX = 16 ;  // 横方向の半径（細長さの源）
             const baseRadiusY = 3;   // 縦方向の半径（細くする）
             const centerX = 16;      // テクスチャ幅の中心
             const centerY = 6;       // テクスチャ高さの中心

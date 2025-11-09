@@ -24,6 +24,16 @@ export class Eraser extends Phaser.GameObjects.Sprite {
         }
     }
 
+    /**
+     * 現在の成長率（0.0 - 1.0）を返す。
+     * 0 は初期スケール、1 は最大スケールに対応する。
+     */
+    public getGrowthRatio(): number {
+        const currentScale = this.scaleX || Eraser.INITIAL_SCALE;
+        const ratio = (currentScale - Eraser.INITIAL_SCALE) / (Eraser.MAX_SCALE - Eraser.INITIAL_SCALE);
+        return Phaser.Math.Clamp(ratio, 0, 1);
+    }
+
     private static createTextures(scene: Phaser.Scene) {
         // 通常の消しゴムのテクスチャ
         if (!scene.textures.exists(this.ERASER_KEY)) {
@@ -112,9 +122,9 @@ export class Eraser extends Phaser.GameObjects.Sprite {
     // 初期スケール
     private static readonly INITIAL_SCALE = 0.8;
     // 1回の成長での固定増加量
-    private static readonly GROWTH_INCREMENT = 0.000001;
+    private static readonly GROWTH_INCREMENT = 0.00001;
     // 最大スケール
-    private static readonly MAX_SCALE = 20.0;
+    private static readonly MAX_SCALE = 8.0;
 
     grow(size: number = 1) {
         // 成長ポイントを初期化（最初の成長時のみ）
@@ -145,7 +155,7 @@ export class Eraser extends Phaser.GameObjects.Sprite {
         let scaleY = targetScale;
 
         this.growPoints.forEach(point => {
-            const wave = Math.sin(this.currentGrowthPhase + point.x * 1.5) * 0.0002;
+            const wave = Math.sin(this.currentGrowthPhase + point.x * 1.5) * 0.002;
             scaleX += wave * point.x;
             scaleY += wave * point.y;
         });
