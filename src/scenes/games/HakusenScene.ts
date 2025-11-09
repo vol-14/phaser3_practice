@@ -29,7 +29,6 @@ export class HakusenScene extends Phaser.Scene {
   private jumpGaugeText!: Phaser.GameObjects.Text  // ジャンプゲージのテキスト
   private sidewalk!: Phaser.GameObjects.Rectangle  // 歩道エリア
   private curbEdge!: Phaser.GameObjects.Rectangle  // 縁石
-  private tutorialShown: boolean = false  // チュートリアル表示済みフラグ
   private lastPlayerX: number = 0  // 前回のプレイヤーのX座標
   private accumulatedDistance: number = 0  // 累積距離（ピクセル単位での端数を保持）
 
@@ -67,8 +66,8 @@ export class HakusenScene extends Phaser.Scene {
     this.lastPlayerX = 0
     this.accumulatedDistance = 0
 
-    this.createBackground(width, height)
-    this.createCrosswalk(width, height)
+    this.createBackground(width)
+    this.createCrosswalk(width)
     this.createUI(width, height)
 
     // 歩行アニメーションを作成
@@ -163,9 +162,6 @@ export class HakusenScene extends Phaser.Scene {
       title.destroy()
       instructionText.destroy()
       startButton.destroy()
-
-      // チュートリアル表示済みフラグを立てる
-      this.tutorialShown = true
 
       // カウントダウンを開始
       this.startCountdown(width, height)
@@ -269,7 +265,7 @@ export class HakusenScene extends Phaser.Scene {
     this.checkIfPlayerFell()
   }
 
-  private createBackground(width: number, height: number): void {
+  private createBackground(width: number): void {
     // 空の背景（明るい青空）
     this.cameras.main.setBackgroundColor('#87CEEB')
 
@@ -357,7 +353,7 @@ export class HakusenScene extends Phaser.Scene {
     this.curbEdge.setDepth(11)  // 歩道より上
   }
 
-  private createCrosswalk(width: number, height: number): void {
+  private createCrosswalk(width: number): void {
     // 横方向に並んだ白いブロックを作成（歩道の右端から連続的に配置）
     const numBlocks = Math.floor((width - this.SIDEWALK_WIDTH) / (this.BLOCK_WIDTH + this.BLOCK_GAP)) + 3
 
@@ -500,7 +496,6 @@ export class HakusenScene extends Phaser.Scene {
   private handlePlayerMovement(): void {
     const baseJumpDistance = this.BLOCK_WIDTH + this.BLOCK_GAP  // 基本ジャンプ距離（1ブロック分）
     const minJumpDistance = 60  // 最小ジャンプ距離
-    const maxJumpDistance = baseJumpDistance + 100  // 最大ジャンプ距離
 
     // ジャンプ時間中のスクロール距離を計算（400ms = ジャンプ時間）
     const jumpDuration = 400  // Player.tsのjumpDurationと同じ

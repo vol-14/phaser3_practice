@@ -9,7 +9,6 @@ export class KeshiPinScene extends Phaser.Scene {
   // ゲームオブジェクト
   private playerEraser!: Eraser;
   private enemyErasers: Eraser[] = [];
-  private desk!: Phaser.GameObjects.Rectangle;
   private deskBounds!: Phaser.Geom.Rectangle;
 
   // 入力
@@ -74,7 +73,7 @@ export class KeshiPinScene extends Phaser.Scene {
     const deskHeight = height * 0.8;
 
     // 机の表面（茶色）
-    this.desk = this.add.rectangle(
+    this.add.rectangle(
       width / 2,
       height / 2,
       deskWidth,

@@ -7,7 +7,7 @@ export class TitleScene extends Phaser.Scene {
   }
 
   create() {
-    const { width, height } = this.cameras.main
+    const { width } = this.cameras.main
 
     // 背景色
     this.cameras.main.setBackgroundColor('#f5f5f0')

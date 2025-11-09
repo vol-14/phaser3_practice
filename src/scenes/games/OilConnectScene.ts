@@ -20,11 +20,11 @@ export const OilConnectScene = {
 
 
     this.input.on(
-        'drag', 
+        'drag',
         (
-            pointer: Phaser.Input.Pointer, 
-            gameObject: Phaser.GameObjects.GameObject, 
-            dragX: number, 
+            _pointer: Phaser.Input.Pointer,
+            gameObject: Phaser.GameObjects.GameObject,
+            dragX: number,
             dragY: number
         ) => {
             const oil = gameObject as OilDropContainer;
