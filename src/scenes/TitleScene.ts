@@ -7,13 +7,13 @@ export class TitleScene extends Phaser.Scene {
   }
 
   create() {
-    const { width } = this.cameras.main
+    const { width, height } = this.cameras.main
 
     // 背景色
     this.cameras.main.setBackgroundColor('#f5f5f0')
 
     // タイトル「追憶」
-    this.add.text(width / 2, 280, '追憶', {
+    this.add.text(width / 2, height / 2 - 220, '追憶', {
       fontSize: '120px',
       color: '#000000',
       fontFamily: 'Arial, sans-serif',
@@ -23,14 +23,14 @@ export class TitleScene extends Phaser.Scene {
     // 青いアンダーライン
     this.add.rectangle(
       width / 2,
-      350,
+      height / 2 - 150,
       200,
       6,
       0x5b9dd9
     )
 
     // サブタイトル「Nostalgia Game」
-    this.add.text(width / 2, 420, 'Nostalgia Game', {
+    this.add.text(width / 2, height / 2 - 80, 'Nostalgia Game', {
       fontSize: '36px',
       color: '#7cb342',
       fontFamily: 'Arial, sans-serif'
@@ -39,7 +39,7 @@ export class TitleScene extends Phaser.Scene {
     // Stageボタン（青）
     new Button(this, {
       x: width / 2,
-      y: 580,
+      y: height / 2 + 70,
       width: 800,
       height: 120,
       text: 'Stage',
@@ -49,21 +49,8 @@ export class TitleScene extends Phaser.Scene {
       onClick: () => this.goToMenu()
     })
 
-    // Configボタン（緑）
-    new Button(this, {
-      x: width / 2,
-      y: 730,
-      width: 800,
-      height: 120,
-      text: 'Config',
-      backgroundColor: 0x7cb342,
-      textColor: '#ffffff',
-      fontSize: '48px',
-      onClick: () => this.goToSettings()
-    })
-
     // 下部の説明文
-    this.add.text(width / 2, 920, 'スペースキー or CLICK で開始', {
+    this.add.text(width / 2, height / 2 + 380, 'スペースキー or CLICK で開始', {
       fontSize: '28px',
       color: '#999999',
       fontFamily: 'Arial, sans-serif'
@@ -77,9 +64,5 @@ export class TitleScene extends Phaser.Scene {
 
   private goToMenu(): void {
     this.scene.start('MenuScene')
-  }
-
-  private goToSettings(): void {
-    this.scene.start('SettingsScene')
   }
 }
