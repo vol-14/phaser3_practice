@@ -129,7 +129,7 @@ export class KeshiPinScene extends Phaser.Scene {
     const { width } = this.scale;
 
     // 残りの敵の数
-    this.enemyCountText = this.add.text(20, 50, `残り敵: ${this.enemiesRemaining}`, {
+    this.enemyCountText = this.add.text(20, 50, `残りの消しゴム: ${this.enemiesRemaining}`, {
       fontSize: '24px',
       color: '#000000',
       fontFamily: 'Arial'
