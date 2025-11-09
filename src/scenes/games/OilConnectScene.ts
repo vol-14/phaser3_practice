@@ -15,6 +15,19 @@ export const OilConnectScene = {
 
     console.log('bg created');
 
+    const closeButton = this.add.text(width - 40, 20, '×', {
+      fontSize: '32px',
+      color: '#000000',
+      padding: { x: 10, y: 5 },
+    })
+    .setOrigin(0.5)
+    .setInteractive({ useHandCursor: true });
+
+    closeButton.on('pointerdown', () => {
+      this.scene.start('MenuScene'); // ← 遷移先のキー名
+    });
+
+
     const soupEllipse = new Phaser.Geom.Ellipse(
       width / 2,
       height / 2 - 20,
