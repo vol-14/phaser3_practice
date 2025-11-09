@@ -1,4 +1,5 @@
 import Phaser from 'phaser'
+import { LoadScene } from './scenes/LoadScene'
 import { TitleScene } from './scenes/TitleScene'
 import { MenuScene } from './scenes/MenuScene'
 import { OilConnectScene } from './scenes/games/OilConnectScene'
@@ -18,6 +19,7 @@ const config: Phaser.Types.Core.GameConfig = {
   parent: 'game-container',
 
   scene: [
+    LoadScene,
     TitleScene,
     MenuScene,
     NeriKeshiScene,

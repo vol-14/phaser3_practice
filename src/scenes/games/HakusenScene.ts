@@ -36,18 +36,7 @@ export class HakusenScene extends Phaser.Scene {
     super({ key: 'HakusenScene' })
   }
 
-  preload() {
-    // キャラクタースプライトシートを読み込む
-    // 画像サイズ: 1536x1024、3フレーム横並び → 各フレーム 512x1024
-    this.load.spritesheet('player', 'assets/images/hakusen/player.png', {
-      frameWidth: 512,
-      frameHeight: 1024
-    })
-
-    // 背景画像を読み込む
-    this.load.image('cloud', 'assets/images/hakusen/cloud.png')
-    this.load.image('tree', 'assets/images/hakusen/tree.png')
-  }
+  // アセットはLoadSceneで読み込み済み
 
   create() {
     const { width, height } = this.cameras.main
