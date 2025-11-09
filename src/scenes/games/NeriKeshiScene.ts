@@ -186,7 +186,30 @@ export class NeriKeshiScene extends Phaser.Scene {
         // ねり消しの成長率プログレスバーを追加（右上）
         this.growthBar = new GrowthBar(this, 1600, 60, 260, 26);
         this.add.existing(this.growthBar);
-    }
+        // 🆕 戻るボタン（右上）
+        const backButton = this.add.text(1850, 60, '✕', {
+            fontSize: '48px',
+            color: '#ffffff',
+            fontFamily: 'Arial, sans-serif'
+        })
+            .setOrigin(0.5)
+            .setDepth(100)
+            .setInteractive({ useHandCursor: true })
+            .on('pointerover', () => {
+                backButton.setColor('#ff0000');   // ホバー時に赤く
+                backButton.setScale(1.2);         // 少し大きく
+            })
+            .on('pointerout', () => {
+                backButton.setColor('#ffffff');   // 通常時は白
+                backButton.setScale(1);           // 元に戻す
+            })
+            .on('pointerdown', () => this.goBack()); // ← クリック時にMenuSceneへ
+}
+
+// 🆕 MenuSceneに戻る関数を追加
+private goBack(): void {
+    this.scene.start('MenuScene');
+}
 
     private spawnPiece(x: number, y: number) {
         // 消しかすをランダムに複数個生成する
